@@ -1,0 +1,52 @@
+name: gym_app
+description: App de seguimiento de rutinas de entrenamiento desde Google Sheets.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Auth & Google APIs
+  google_sign_in: ^6.2.1
+  googleapis: ^13.2.0
+  extension_google_sign_in_as_googleapis_auth: ^2.0.12
+
+  # Estado
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Navegación
+  go_router: ^14.2.0
+
+  # HTTP
+  dio: ^5.4.3+1
+
+  # Storage
+  flutter_secure_storage: ^9.2.2
+
+  # Cache
+  hive_flutter: ^1.1.0
+
+  # UI
+  circular_countdown_timer: ^0.2.4
+  cached_network_image: ^3.3.1
+  vibration: ^1.8.4
+  url_launcher: ^6.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.9
+  riverpod_generator: ^2.4.0
+  hive_generator: ^2.0.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/exercise_images/
