@@ -1,17 +1,42 @@
 import 'package:googleapis/sheets/v4.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/exercise.dart';
 import '../models/workout_day.dart';
 import '../models/workout_week.dart';
 
-class SheetsService {
-  static const _spreadsheetId =
-      '1pqamR-uIIxhbluGqEtrCK__xZpMbSQ6tAD-cP8QTF_U';
+const _profeEmail = 'sanfitentrenamientos@gmail.com';
 
+class SheetsService {
   final GoogleSignIn _googleSignIn;
 
   SheetsService(this._googleSignIn);
+
+  String? _cachedSpreadsheetId;
+
+  Future<String> _resolveSpreadsheetId() async {
+    if (_cachedSpreadsheetId != null) return _cachedSpreadsheetId!;
+
+    final httpClient = await _googleSignIn.authenticatedClient();
+    if (httpClient == null) throw Exception('No authenticated client');
+
+    final driveApi = drive.DriveApi(httpClient);
+    final result = await driveApi.files.list(
+      q: "sharedWithMe = true and mimeType = 'application/vnd.google-apps.spreadsheet'",
+      $fields: 'files(id,name,sharingUser)',
+    );
+
+    final file = result.files?.firstWhere(
+      (f) => f.sharingUser?.emailAddress == _profeEmail,
+      orElse: () => throw Exception('No se encontró ninguna hoja compartida por $_profeEmail'),
+    );
+
+    if (file == null) throw Exception('No se encontró ninguna hoja compartida por $_profeEmail');
+
+    _cachedSpreadsheetId = file.id!;
+    return _cachedSpreadsheetId!;
+  }
 
   Future<WorkoutWeek> getWeek(
       int weekNumber, GoogleSignInAccount account) async {
@@ -19,11 +44,12 @@ class SheetsService {
         await _googleSignIn.authenticatedClient();
     if (httpClient == null) throw Exception('No authenticated client');
 
+    final spreadsheetId = await _resolveSpreadsheetId();
     final sheetsApi = SheetsApi(httpClient);
     final range = 'SEMANA $weekNumber!A8:H50';
 
     final response = await sheetsApi.spreadsheets.values.get(
-      _spreadsheetId,
+      spreadsheetId,
       range,
     );
 
