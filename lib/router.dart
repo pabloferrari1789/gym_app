@@ -4,17 +4,18 @@ import 'package:go_router/go_router.dart';
 import 'providers/auth_provider.dart';
 import 'screens/login/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/progress/progress_screen.dart';
+import 'screens/profile/profile_screen.dart';
 import 'screens/day/day_screen.dart';
 import 'screens/exercise/exercise_detail_screen.dart';
+import 'widgets/main_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/home',
     refreshListenable: _AuthStateListenable(ref),
     redirect: (context, state) {
       final authState = ref.read(authStateProvider);
-
-      // Still loading → no redirect
       if (authState.isLoading) return null;
 
       final isLoggedIn = authState.valueOrNull != null;
@@ -29,10 +30,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/login',
         builder: (context, state) => const LoginScreen(),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
+      // Full-screen routes (no bottom nav)
       GoRoute(
         path: '/week/:weekNumber/day/:dayNumber',
         builder: (context, state) {
@@ -55,11 +53,35 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      // Tabs with bottom navigation
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            MainShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/home',
+              builder: (context, state) => const HomeScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/progress',
+              builder: (context, state) => const ProgressScreen(),
+            ),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/profile',
+              builder: (context, state) => const ProfileScreen(),
+            ),
+          ]),
+        ],
+      ),
     ],
   );
 });
 
-/// Bridges Riverpod auth state to GoRouter's refreshListenable
 class _AuthStateListenable extends ChangeNotifier {
   _AuthStateListenable(Ref ref) {
     ref.listen(authStateProvider, (_, __) => notifyListeners());
